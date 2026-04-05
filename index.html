@@ -137,9 +137,10 @@
     font-family: var(--font-display);
     font-weight: 900;
     font-size: clamp(48px, 10vw, 120px);
-    line-height: 0.95;
+    line-height: 1.1;
     letter-spacing: -0.02em;
     margin-bottom: 8px;
+    padding-bottom: 4px;
     opacity: 0;
     animation: heroSlideUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards;
   }
@@ -165,8 +166,8 @@
     font-family: var(--font-display);
     font-style: italic;
     font-weight: 400;
-    font-size: clamp(14px, 2.2vw, 22px);
-    color: var(--text-secondary);
+    font-size: clamp(15px, 2.2vw, 22px);
+    color: #cdc9c0;
     max-width: 520px;
     line-height: 1.5;
     margin-top: 20px;
@@ -570,7 +571,7 @@
     font-family: var(--font-display);
     font-style: italic;
     font-size: 16px;
-    color: var(--text-dim);
+    color: var(--text-secondary);
     max-width: 400px;
     margin: 0 auto;
     line-height: 1.6;
@@ -582,7 +583,6 @@
     letter-spacing: 3px;
     color: var(--text-dim);
     margin-top: 20px;
-    opacity: 0.5;
   }
 
   /* ═══════════════════════════════════════════
@@ -764,7 +764,7 @@
   const canvas = document.getElementById('rain-canvas');
   const ctx = canvas.getContext('2d');
   let W, H, drops = [];
-  const DROP_COUNT = 120;
+  const DROP_COUNT = 180;
 
   function resize() {
     W = canvas.width = window.innerWidth;
@@ -777,9 +777,9 @@
       drops.push({
         x: Math.random() * W,
         y: Math.random() * H,
-        len: 12 + Math.random() * 20,
-        speed: 4 + Math.random() * 6,
-        opacity: 0.08 + Math.random() * 0.15,
+        len: 14 + Math.random() * 24,
+        speed: 5 + Math.random() * 7,
+        opacity: 0.2 + Math.random() * 0.35,
         wind: -0.5
       });
     }
@@ -791,8 +791,8 @@
       ctx.beginPath();
       ctx.moveTo(d.x, d.y);
       ctx.lineTo(d.x + d.wind * d.len * 0.3, d.y + d.len);
-      ctx.strokeStyle = `rgba(174, 194, 224, ${d.opacity})`;
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = `rgba(180, 200, 230, ${d.opacity})`;
+      ctx.lineWidth = 1.2;
       ctx.stroke();
 
       d.y += d.speed;
