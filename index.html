@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Joey's Downfall — A Seattle Documentary</title>
+<meta name="description" content="A visual documentary of one man's descent into the Seattle pipeline.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep: #06060e;
+    --bg-base: #0a0a14;
+    --bg-card: rgba(14, 14, 28, 0.7);
+    --bg-card-border: rgba(255, 255, 255, 0.04);
+    --text-primary: #e8e6e1;
+    --text-secondary: #7a7872;
+    --text-dim: #4a4944;
+    --green: #3ecf6e;
+    --orange: #e8913a;
+    --red: #e84545;
+    --cyan: #3ec5cf;
+    --blue: #4488ff;
+    --subaru-green: #5cb85c;
+    --crimson: #8b1a1a;
+    --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
+    --font-body: 'DM Sans', -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ═══════════════════════════════════════════
+     RAIN CANVAS
+     ═══════════════════════════════════════════ */
+  #rain-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.35;
+  }
+
+  /* ═══════════════════════════════════════════
+     GRAIN OVERLAY
+     ═══════════════════════════════════════════ */
+  .grain {
+    position: fixed;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    animation: grainShift 0.5s steps(1) infinite;
+  }
+  @keyframes grainShift {
+    0% { transform: translate(0, 0); }
+    25% { transform: translate(-2%, 3%); }
+    50% { transform: translate(1%, -2%); }
+    75% { transform: translate(-3%, 1%); }
+    100% { transform: translate(2%, -1%); }
+  }
+
+  /* ═══════════════════════════════════════════
+     ATMOSPHERIC GLOW
+     ═══════════════════════════════════════════ */
+  .atmosphere {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 50% 0%, rgba(62, 207, 110, 0.04) 0%, transparent 70%),
+      radial-gradient(ellipse 80% 50% at 30% 100%, rgba(139, 26, 26, 0.08) 0%, transparent 60%);
+    transition: opacity 1s ease;
+  }
+
+  /* ═══════════════════════════════════════════
+     MAIN CONTENT
+     ═══════════════════════════════════════════ */
+  .content {
+    position: relative;
+    z-index: 3;
+  }
+
+  /* ═══════════════════════════════════════════
+     HERO SECTION
+     ═══════════════════════════════════════════ */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px 24px;
+    position: relative;
+  }
+
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 200px;
+    background: linear-gradient(to bottom, transparent, var(--bg-deep));
+    pointer-events: none;
+  }
+
+  .hero-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 24px;
+    opacity: 0;
+    animation: heroFadeIn 1s ease 0.3s forwards;
+  }
+
+  .hero-title {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(48px, 10vw, 120px);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+    opacity: 0;
+    animation: heroSlideUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards;
+  }
+
+  .hero-title .word-joeys {
+    display: block;
+    background: linear-gradient(135deg, var(--text-primary) 0%, #c4c0b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-title .word-downfall {
+    display: block;
+    font-style: italic;
+    background: linear-gradient(135deg, var(--red) 0%, var(--crimson) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-subtitle {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(14px, 2.2vw, 22px);
+    color: var(--text-secondary);
+    max-width: 520px;
+    line-height: 1.5;
+    margin-top: 20px;
+    opacity: 0;
+    animation: heroFadeIn 1s ease 1s forwards;
+  }
+
+  .hero-scroll-cue {
+    position: absolute;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    animation: heroFadeIn 1s ease 1.8s forwards;
+    z-index: 1;
+  }
+
+  .hero-scroll-cue span {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .scroll-line {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, var(--text-dim), transparent);
+    animation: scrollPulse 2s ease infinite;
+  }
+
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.3; transform: scaleY(1); }
+    50% { opacity: 1; transform: scaleY(1.2); }
+  }
+
+  @keyframes heroFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes heroSlideUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ═══════════════════════════════════════════
+     TIMELINE SECTION
+     ═══════════════════════════════════════════ */
+  .timeline-section {
+    max-width: 740px;
+    margin: 0 auto;
+    padding: 40px 24px 120px;
+    position: relative;
+  }
+
+  .timeline {
+    position: relative;
+    padding-left: 52px;
+  }
+
+  /* The descent line */
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(
+      to bottom,
+      var(--green) 0%,
+      #9ecf3e 15%,
+      var(--orange) 35%,
+      var(--red) 60%,
+      var(--crimson) 85%,
+      #440a0a 100%
+    );
+    opacity: 0.6;
+  }
+
+  /* Glow behind the line */
+  .timeline::after {
+    content: '';
+    position: absolute;
+    left: 14px;
+    top: 0;
+    bottom: 0;
+    width: 14px;
+    background: linear-gradient(
+      to bottom,
+      rgba(62, 207, 110, 0.15) 0%,
+      rgba(232, 145, 58, 0.15) 35%,
+      rgba(232, 69, 69, 0.15) 60%,
+      rgba(139, 26, 26, 0.1) 100%
+    );
+    filter: blur(8px);
+    pointer-events: none;
+  }
+
+  /* ═══════════════════════════════════════════
+     EVENT CARDS
+     ═══════════════════════════════════════════ */
+  .event {
+    position: relative;
+    margin-bottom: 56px;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .event.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Timeline dot */
+  .event-dot {
+    position: absolute;
+    left: -44px;
+    top: 18px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    z-index: 2;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    border: 2px solid var(--bg-deep);
+  }
+
+  .event-dot::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 1px solid;
+    border-color: inherit;
+    opacity: 0.2;
+    animation: dotPulse 3s ease infinite;
+  }
+
+  @keyframes dotPulse {
+    0%, 100% { transform: scale(1); opacity: 0.2; }
+    50% { transform: scale(1.3); opacity: 0; }
+  }
+
+  .card {
+    background: var(--bg-card);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--bg-card-border);
+    border-radius: 16px;
+    padding: 24px 28px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.4s ease, box-shadow 0.4s ease;
+  }
+
+  .card:hover {
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.3);
+  }
+
+  /* Accent stripe on left */
+  .card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    border-radius: 3px 0 0 3px;
+  }
+
+  /* Subtle glow in top-right corner of card */
+  .card::after {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    opacity: 0.06;
+    pointer-events: none;
+  }
+
+  .card-phase {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .card-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 24px;
+    line-height: 1.2;
+    margin-bottom: 10px;
+  }
+
+  .card-desc {
+    font-size: 15px;
+    font-weight: 300;
+    color: var(--text-secondary);
+    line-height: 1.65;
+  }
+
+  /* ═══════════════════════════════════════════
+     SOUL BAR
+     ═══════════════════════════════════════════ */
+  .soul-bar {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .soul-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+
+  .soul-track {
+    flex: 1;
+    height: 4px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .soul-fill {
+    height: 100%;
+    border-radius: 2px;
+    width: 0%;
+    transition: width 1.8s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+  }
+
+  .soul-fill.animated {
+    /* width set by data attribute via JS */
+  }
+
+  .soul-fill::after {
+    content: '';
+    position: absolute;
+    right: 0; top: -3px; bottom: -3px;
+    width: 6px;
+    border-radius: 3px;
+    background: inherit;
+    filter: blur(4px);
+    opacity: 0.8;
+  }
+
+  .soul-pct {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    min-width: 38px;
+    text-align: right;
+  }
+
+  /* ═══════════════════════════════════════════
+     START MARKER
+     ═══════════════════════════════════════════ */
+  .event-start .card {
+    background: rgba(62, 207, 110, 0.04);
+    border-color: rgba(62, 207, 110, 0.12);
+    text-align: center;
+    padding: 16px 24px;
+  }
+
+  .event-start .card-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--green);
+    font-family: var(--font-body);
+    margin-bottom: 0;
+  }
+
+  /* ═══════════════════════════════════════════
+     END MARKER
+     ═══════════════════════════════════════════ */
+  .event-end .card {
+    background: rgba(139, 26, 26, 0.1);
+    border-color: rgba(232, 69, 69, 0.15);
+    text-align: center;
+    padding: 32px 24px;
+  }
+
+  .event-end .card-title {
+    color: var(--red);
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+
+  .event-end .card-desc {
+    color: var(--text-secondary);
+    font-style: italic;
+  }
+
+  .train-row {
+    font-size: 28px;
+    letter-spacing: 6px;
+    margin-top: 16px;
+    animation: trainRoll 8s linear infinite;
+    display: inline-block;
+  }
+
+  @keyframes trainRoll {
+    0% { transform: translateX(0); }
+    50% { transform: translateX(-8px); }
+    100% { transform: translateX(0); }
+  }
+
+  /* ═══════════════════════════════════════════
+     COLOR VARIANTS
+     ═══════════════════════════════════════════ */
+  .event--green .event-dot { background: var(--green); border-color: var(--green); }
+  .event--green .card::before { background: var(--green); }
+  .event--green .card::after { background: var(--green); }
+
+  .event--orange .event-dot { background: var(--orange); border-color: var(--orange); }
+  .event--orange .card::before { background: var(--orange); }
+  .event--orange .card::after { background: var(--orange); }
+  .event--orange .card-phase { color: var(--orange); }
+  .event--orange .card-title { color: var(--orange); }
+  .event--orange .soul-fill { background: linear-gradient(90deg, var(--orange), #c97a2e); }
+  .event--orange .soul-pct { color: var(--orange); }
+
+  .event--red .event-dot { background: var(--red); border-color: var(--red); }
+  .event--red .card::before { background: var(--red); }
+  .event--red .card::after { background: var(--red); }
+  .event--red .card-phase { color: var(--red); }
+  .event--red .card-title { color: var(--red); }
+  .event--red .soul-fill { background: linear-gradient(90deg, var(--red), #b33); }
+  .event--red .soul-pct { color: var(--red); }
+
+  .event--cyan .event-dot { background: var(--cyan); border-color: var(--cyan); }
+  .event--cyan .card::before { background: var(--cyan); }
+  .event--cyan .card::after { background: var(--cyan); }
+  .event--cyan .card-phase { color: var(--cyan); }
+  .event--cyan .card-title { color: var(--cyan); }
+  .event--cyan .soul-fill { background: linear-gradient(90deg, var(--cyan), #cc4); }
+  .event--cyan .soul-pct { color: #cccc44; }
+
+  .event--blue .event-dot { background: var(--blue); border-color: var(--blue); }
+  .event--blue .card::before { background: var(--blue); }
+  .event--blue .card::after { background: var(--blue); }
+  .event--blue .card-phase { color: var(--blue); }
+  .event--blue .card-title { color: var(--blue); }
+  .event--blue .soul-fill { background: linear-gradient(90deg, #f64, #e84545); }
+  .event--blue .soul-pct { color: #f64; }
+
+  .event--subaru .event-dot { background: var(--subaru-green); border-color: var(--subaru-green); }
+  .event--subaru .card::before { background: var(--subaru-green); }
+  .event--subaru .card::after { background: var(--subaru-green); }
+  .event--subaru .card-phase { color: var(--subaru-green); }
+  .event--subaru .card-title { color: var(--subaru-green); }
+  .event--subaru .soul-fill { background: linear-gradient(90deg, var(--red), var(--crimson)); }
+  .event--subaru .soul-pct { color: var(--red); }
+
+  .event--crimson .event-dot { background: var(--crimson); border-color: var(--crimson); }
+  .event--crimson .card::before { background: var(--crimson); }
+  .event--crimson .card::after { background: var(--crimson); }
+
+  /* ═══════════════════════════════════════════
+     FOOTER
+     ═══════════════════════════════════════════ */
+  .memorial {
+    text-align: center;
+    padding: 80px 24px 60px;
+    position: relative;
+    z-index: 3;
+  }
+
+  .memorial-divider {
+    width: 60px;
+    height: 1px;
+    background: var(--text-dim);
+    margin: 0 auto 32px;
+  }
+
+  .memorial-text {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 16px;
+    color: var(--text-dim);
+    max-width: 400px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  .memorial-years {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+    margin-top: 20px;
+    opacity: 0.5;
+  }
+
+  /* ═══════════════════════════════════════════
+     RESPONSIVE
+     ═══════════════════════════════════════════ */
+  @media (max-width: 600px) {
+    .timeline { padding-left: 40px; }
+    .timeline::before { left: 14px; }
+    .timeline::after { left: 8px; }
+    .event-dot { left: -34px; width: 26px; height: 26px; font-size: 12px; }
+    .card { padding: 18px 20px; }
+    .card-title { font-size: 20px; }
+    .card-desc { font-size: 14px; }
+    .event-end .card-title { font-size: 24px; }
+    .timeline-section { padding: 20px 16px 80px; }
+  }
+
+  /* ═══════════════════════════════════════════
+     REDUCED MOTION
+     ═══════════════════════════════════════════ */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+    .event { opacity: 1; transform: none; }
+    .soul-fill { transition: none; }
+    #rain-canvas { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="rain-canvas" aria-hidden="true"></canvas>
+<div class="grain" aria-hidden="true"></div>
+<div class="atmosphere" aria-hidden="true"></div>
+
+<div class="content">
+
+  <!-- ════════════ HERO ════════════ -->
+  <header class="hero">
+    <p class="hero-eyebrow">A visual documentary</p>
+    <h1 class="hero-title">
+      <span class="word-joeys">Joey's</span>
+      <span class="word-downfall">Downfall</span>
+    </h1>
+    <p class="hero-subtitle">The definitive account of one man's descent into the Seattle pipeline</p>
+    <div class="hero-scroll-cue">
+      <span>Scroll</span>
+      <div class="scroll-line"></div>
+    </div>
+  </header>
+
+  <!-- ════════════ TIMELINE ════════════ -->
+  <section class="timeline-section">
+    <div class="timeline">
+
+      <!-- START -->
+      <div class="event event-start event--green">
+        <div class="event-dot">&#10003;</div>
+        <div class="card">
+          <div class="card-title">Pre-Seattle Joey &mdash; soul intact</div>
+        </div>
+      </div>
+
+      <!-- 1: MOVED TO SEATTLE -->
+      <div class="event event--orange">
+        <div class="event-dot">&#x1F69A;</div>
+        <div class="card">
+          <div class="card-phase">Phase I</div>
+          <div class="card-title">Moved to Seattle</div>
+          <div class="card-desc">Left civilization behind. Started saying &ldquo;the mountain is out&rdquo; unironically. Rain became a personality trait.</div>
+          <div class="soul-bar">
+            <span class="soul-label">Soul Remaining</span>
+            <div class="soul-track">
+              <div class="soul-fill" data-width="75"></div>
+            </div>
+            <span class="soul-pct">75%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2: AMAZON -->
+      <div class="event event--red">
+        <div class="event-dot">&#x1F480;</div>
+        <div class="card">
+          <div class="card-phase">Phase II</div>
+          <div class="card-title">Sold Soul to Amazon</div>
+          <div class="card-desc">Traded his humanity for RSUs and a leadership principle lanyard. Now speaks exclusively in acronyms. &ldquo;Let&rsquo;s circle back on that PR, it&rsquo;s not FRUGAL enough.&rdquo;</div>
+          <div class="soul-bar">
+            <span class="soul-label">Soul Remaining</span>
+            <div class="soul-track">
+              <div class="soul-fill" data-width="45"></div>
+            </div>
+            <span class="soul-pct">45%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3: RUNNING, HIKING, BREWERIES -->
+      <div class="event event--cyan">
+        <div class="event-dot">&#x1F3C3;</div>
+        <div class="card">
+          <div class="card-phase">Phase III</div>
+          <div class="card-title">Running, Hiking &amp; Breweries</div>
+          <div class="card-desc">The Seattle starter pack activated. Every weekend is now a 10K followed by an IPA flight. Instagram bio says &ldquo;trail runner&rdquo; after one hike that was basically a paved sidewalk.</div>
+          <div class="soul-bar">
+            <span class="soul-label">Soul Remaining</span>
+            <div class="soul-track">
+              <div class="soul-fill" data-width="25"></div>
+            </div>
+            <span class="soul-pct">25%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4: BECAME LIBERAL -->
+      <div class="event event--blue">
+        <div class="event-dot">&#x1F5F3;&#xFE0F;</div>
+        <div class="card">
+          <div class="card-phase">Phase IV</div>
+          <div class="card-title">Became a Liberal</div>
+          <div class="card-desc">The Seattle water finally kicked in. Now has opinions about zoning laws and brings a tote bag to the farmers market. Thanksgiving dinner has never been the same.</div>
+          <div class="soul-bar">
+            <span class="soul-label">Soul Remaining</span>
+            <div class="soul-track">
+              <div class="soul-fill" data-width="12"></div>
+            </div>
+            <span class="soul-pct">12%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5: SUBARU -->
+      <div class="event event--subaru">
+        <div class="event-dot">&#x1F697;</div>
+        <div class="card">
+          <div class="card-phase">Phase V &mdash; Terminal</div>
+          <div class="card-title">Bought a Subaru</div>
+          <div class="card-desc">The transformation is complete. The Seattle pipeline has claimed another victim. Probably has a &ldquo;COEXIST&rdquo; bumper sticker and a Yakima roof rack for the one camping trip a year he actually takes.</div>
+          <div class="soul-bar">
+            <span class="soul-label">Soul Remaining</span>
+            <div class="soul-track">
+              <div class="soul-fill" data-width="3"></div>
+            </div>
+            <span class="soul-pct">3%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- END -->
+      <div class="event event-end event--crimson">
+        <div class="event-dot">&#x2620;&#xFE0F;</div>
+        <div class="card">
+          <div class="card-title">Present Day Joey</div>
+          <div class="card-desc">Soul: gone. Personality: replaced by Seattle. Only constant: trains.</div>
+          <div class="train-row" aria-label="Train">&#x1F682;&#x1F683;&#x1F683;&#x1F683;&#x1F683;</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ════════════ MEMORIAL FOOTER ════════════ -->
+  <footer class="memorial">
+    <div class="memorial-divider"></div>
+    <p class="memorial-text">In loving memory of the Joey we once knew.<br>Gone but not forgotten. Mostly gone, though.</p>
+    <p class="memorial-years">SOUL &middot; ???? &ndash; 2024</p>
+  </footer>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   RAIN SIMULATION
+   ═══════════════════════════════════════════ */
+(function() {
+  const canvas = document.getElementById('rain-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, drops = [];
+  const DROP_COUNT = 120;
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  function initDrops() {
+    drops = [];
+    for (let i = 0; i < DROP_COUNT; i++) {
+      drops.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        len: 12 + Math.random() * 20,
+        speed: 4 + Math.random() * 6,
+        opacity: 0.08 + Math.random() * 0.15,
+        wind: -0.5
+      });
+    }
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    for (const d of drops) {
+      ctx.beginPath();
+      ctx.moveTo(d.x, d.y);
+      ctx.lineTo(d.x + d.wind * d.len * 0.3, d.y + d.len);
+      ctx.strokeStyle = `rgba(174, 194, 224, ${d.opacity})`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      d.y += d.speed;
+      d.x += d.wind;
+
+      if (d.y > H) {
+        d.y = -d.len;
+        d.x = Math.random() * W;
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', () => { resize(); initDrops(); });
+  resize();
+  initDrops();
+  draw();
+})();
+
+/* ═══════════════════════════════════════════
+   SCROLL-TRIGGERED ANIMATIONS
+   ═══════════════════════════════════════════ */
+(function() {
+  const events = document.querySelectorAll('.event');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+
+        // Animate soul bar fill
+        const fill = entry.target.querySelector('.soul-fill');
+        if (fill && fill.dataset.width) {
+          fill.style.width = fill.dataset.width + '%';
+        }
+
+        observer.unobserve(entry.target);
+      }
+    });
+  }, {
+    threshold: 0.15,
+    rootMargin: '0px 0px -40px 0px'
+  });
+
+  events.forEach(ev => observer.observe(ev));
+})();
+</script>
+
+</body>
+</html>
